@@ -2,14 +2,18 @@ import requests
 from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
 import json
 from telegram import Update
-from telegram.ext import ApplicationBuilder, MessageHandler, filters, ContextTypes
+from telegram.ext import ApplicationBuilder, MessageHandler, filters, ContextTypes, CommandHandler
 from datetime import datetime
 import traceback
+import os
+
+
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+ADMIN_ID = int(os.getenv("ADMIN_ID"))
+CMC_API_KEY = os.getenv("CMC_API_KEY")
 
 data = ''
-bot_token = "8414940488:AAEDjdVdRKpHqLGuVX-QEjVrXJZ8oMp4QhM"
 coin = ""
-ADMIN_ID = 8250762387
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global coin
@@ -27,7 +31,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     headers = {
     'Accepts': 'application/json',
-    'X-CMC_PRO_API_KEY': '3ba60acd46b94e928189c6a5155612f8',
+    'X-CMC_PRO_API_KEY': CMC_API_KEY,
     }
 
     session = requests.Session()
@@ -55,7 +59,11 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
     print("⚠️ An error occurred:")
     print(traceback.format_exc())  # full traceback in Render logs
 
-app = ApplicationBuilder().token(bot_token).build()
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Hello! I’m xereabot 🤖\nChat the name of the coin to use the bot\nExample:\nBTC\nSOL\nETH")
+
+app = ApplicationBuilder().token(BOT_TOKEN).build()
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+app.add_handler(CommandHandler("start", start))
 app.add_error_handler(error_handler)
 app.run_polling()
